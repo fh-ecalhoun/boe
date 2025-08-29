@@ -1,0 +1,696 @@
+{
+  "service": {
+    "service": "boe-backend",
+    "serviceObject": {
+      "name": "boe-backend"
+    },
+    "provider": {
+      "name": "aws",
+      "runtime": "nodejs18.x",
+      "region": "us-east-1",
+      "stage": "dev",
+      "environment": {
+        "OPENAI_API_KEY": "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",
+        "PINECONE_API_KEY": "pcsk_3rZ8rm_4QuMAgrHSUaY33WqDR5KowyTmgMRr2cvqY1NB48Ed2a4Y1davQGDtBeee9DmYpf",
+        "PINECONE_ENVIRONMENT": "gcp-starter",
+        "PINECONE_PROJECT_NAME": "Default",
+        "PINECONE_INDEX": "boe-commands"
+      },
+      "httpApi": {
+        "cors": {
+          "allowedOrigins": [
+            "http://localhost:3000"
+          ],
+          "allowedMethods": [
+            "GET",
+            "POST",
+            "OPTIONS"
+          ],
+          "allowedHeaders": [
+            "Content-Type",
+            "Authorization"
+          ],
+          "allowCredentials": false
+        }
+      },
+      "versionFunctions": true,
+      "compiledCloudFormationTemplate": {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Description": "The AWS CloudFormation template for this Serverless application",
+        "Resources": {
+          "HelloLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/boe-backend-dev-hello"
+            }
+          },
+          "IntentLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/boe-backend-dev-intent"
+            }
+          },
+          "SimilarDashcommandLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/boe-backend-dev-similar-command"
+            }
+          },
+          "IamRoleLambdaExecution": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+              "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": [
+                        "lambda.amazonaws.com"
+                      ]
+                    },
+                    "Action": [
+                      "sts:AssumeRole"
+                    ]
+                  }
+                ]
+              },
+              "Policies": [
+                {
+                  "PolicyName": {
+                    "Fn::Join": [
+                      "-",
+                      [
+                        "boe-backend",
+                        "dev",
+                        "lambda"
+                      ]
+                    ]
+                  },
+                  "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:CreateLogStream",
+                          "logs:CreateLogGroup",
+                          "logs:TagResource"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/boe-backend-dev*:*"
+                          }
+                        ]
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:PutLogEvents"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/boe-backend-dev*:*:*"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ],
+              "Path": "/",
+              "RoleName": {
+                "Fn::Join": [
+                  "-",
+                  [
+                    "boe-backend",
+                    "dev",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    "lambdaRole"
+                  ]
+                ]
+              }
+            }
+          },
+          "HelloLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-us-east-1-4b35793f-c7b5",
+                "S3Key": "serverless/boe-backend/dev/1752272840322-2025-07-11T22:27:20.322Z/boe-backend.zip"
+              },
+              "Handler": "handler.hello",
+              "Runtime": "nodejs18.x",
+              "FunctionName": "boe-backend-dev-hello",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "OPENAI_API_KEY": "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",
+                  "PINECONE_API_KEY": "pcsk_3rZ8rm_4QuMAgrHSUaY33WqDR5KowyTmgMRr2cvqY1NB48Ed2a4Y1davQGDtBeee9DmYpf",
+                  "PINECONE_ENVIRONMENT": "gcp-starter",
+                  "PINECONE_PROJECT_NAME": "Default",
+                  "PINECONE_INDEX": "boe-commands"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "HelloLogGroup"
+            ]
+          },
+          "IntentLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-us-east-1-4b35793f-c7b5",
+                "S3Key": "serverless/boe-backend/dev/1752272840322-2025-07-11T22:27:20.322Z/boe-backend.zip"
+              },
+              "Handler": "handler.intent",
+              "Runtime": "nodejs18.x",
+              "FunctionName": "boe-backend-dev-intent",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "OPENAI_API_KEY": "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",
+                  "PINECONE_API_KEY": "pcsk_3rZ8rm_4QuMAgrHSUaY33WqDR5KowyTmgMRr2cvqY1NB48Ed2a4Y1davQGDtBeee9DmYpf",
+                  "PINECONE_ENVIRONMENT": "gcp-starter",
+                  "PINECONE_PROJECT_NAME": "Default",
+                  "PINECONE_INDEX": "boe-commands"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "IntentLogGroup"
+            ]
+          },
+          "SimilarDashcommandLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "serverless-framework-deployments-us-east-1-4b35793f-c7b5",
+                "S3Key": "serverless/boe-backend/dev/1752272840322-2025-07-11T22:27:20.322Z/boe-backend.zip"
+              },
+              "Handler": "handler.similarCommand",
+              "Runtime": "nodejs18.x",
+              "FunctionName": "boe-backend-dev-similar-command",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Environment": {
+                "Variables": {
+                  "OPENAI_API_KEY": "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",
+                  "PINECONE_API_KEY": "pcsk_3rZ8rm_4QuMAgrHSUaY33WqDR5KowyTmgMRr2cvqY1NB48Ed2a4Y1davQGDtBeee9DmYpf",
+                  "PINECONE_ENVIRONMENT": "gcp-starter",
+                  "PINECONE_PROJECT_NAME": "Default",
+                  "PINECONE_INDEX": "boe-commands"
+                }
+              },
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "SimilarDashcommandLogGroup"
+            ]
+          },
+          "HelloLambdaVersionW7iVnM8cLu45OLvRFZ7MsaqtofoKghZjYWR68p353E": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "HelloLambdaFunction"
+              },
+              "CodeSha256": "JE3czpYjj6P8SdnA+YVhIYQGPwt3Nobl8acvYUHNZDM="
+            }
+          },
+          "IntentLambdaVersionhLLshyDfT7UTjL7qJMBhEUoPf78RaJO4tZY8Q3M0wg": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "IntentLambdaFunction"
+              },
+              "CodeSha256": "JE3czpYjj6P8SdnA+YVhIYQGPwt3Nobl8acvYUHNZDM="
+            }
+          },
+          "SimilarDashcommandLambdaVersionBt2gYkEhgnPPVGv3BW71u5mJGFDoRNIlSOoWKZx78T0": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "SimilarDashcommandLambdaFunction"
+              },
+              "CodeSha256": "JE3czpYjj6P8SdnA+YVhIYQGPwt3Nobl8acvYUHNZDM="
+            }
+          },
+          "HttpApi": {
+            "Type": "AWS::ApiGatewayV2::Api",
+            "Properties": {
+              "Name": "dev-boe-backend",
+              "ProtocolType": "HTTP",
+              "CorsConfiguration": {
+                "AllowHeaders": [
+                  "Content-Type",
+                  "Authorization"
+                ],
+                "AllowMethods": [
+                  "GET",
+                  "POST",
+                  "OPTIONS"
+                ],
+                "AllowOrigins": [
+                  "http://localhost:3000"
+                ]
+              }
+            }
+          },
+          "HttpApiStage": {
+            "Type": "AWS::ApiGatewayV2::Stage",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "StageName": "$default",
+              "AutoDeploy": true,
+              "DefaultRouteSettings": {
+                "DetailedMetricsEnabled": false
+              }
+            }
+          },
+          "HelloLambdaPermissionHttpApi": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "HelloLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "HttpApi"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "HttpApiIntegrationHello": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "IntegrationType": "AWS_PROXY",
+              "IntegrationUri": {
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"HelloLambdaPermissionHttpApi\"][\"Properties\"][\"FunctionName\"]"
+              },
+              "PayloadFormatVersion": "2.0",
+              "TimeoutInMillis": 30000
+            }
+          },
+          "HttpApiRouteGetHello": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "GET /hello",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationHello"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationHello"
+          },
+          "IntentLambdaPermissionHttpApi": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "IntentLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "HttpApi"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "HttpApiIntegrationIntent": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "IntegrationType": "AWS_PROXY",
+              "IntegrationUri": {
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"IntentLambdaPermissionHttpApi\"][\"Properties\"][\"FunctionName\"]"
+              },
+              "PayloadFormatVersion": "2.0",
+              "TimeoutInMillis": 30000
+            }
+          },
+          "HttpApiRoutePostIntent": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "POST /intent",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationIntent"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationIntent"
+          },
+          "SimilarDashcommandLambdaPermissionHttpApi": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "SimilarDashcommandLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": "apigateway.amazonaws.com",
+              "SourceArn": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition"
+                    },
+                    ":execute-api:",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    ":",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":",
+                    {
+                      "Ref": "HttpApi"
+                    },
+                    "/*"
+                  ]
+                ]
+              }
+            }
+          },
+          "HttpApiIntegrationSimilarDashcommand": {
+            "Type": "AWS::ApiGatewayV2::Integration",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "IntegrationType": "AWS_PROXY",
+              "IntegrationUri": {
+                "$ref": "$[\"service\"][\"provider\"][\"compiledCloudFormationTemplate\"][\"Resources\"][\"SimilarDashcommandLambdaPermissionHttpApi\"][\"Properties\"][\"FunctionName\"]"
+              },
+              "PayloadFormatVersion": "2.0",
+              "TimeoutInMillis": 30000
+            }
+          },
+          "HttpApiRoutePostProd": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "POST /prod",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationSimilarDashcommand"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationSimilarDashcommand"
+          }
+        },
+        "Outputs": {
+          "ServerlessDeploymentBucketName": {
+            "Value": "serverless-framework-deployments-us-east-1-4b35793f-c7b5",
+            "Export": {
+              "Name": "sls-boe-backend-dev-ServerlessDeploymentBucketName"
+            }
+          },
+          "HelloLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "HelloLambdaVersionW7iVnM8cLu45OLvRFZ7MsaqtofoKghZjYWR68p353E"
+            },
+            "Export": {
+              "Name": "sls-boe-backend-dev-HelloLambdaFunctionQualifiedArn"
+            }
+          },
+          "IntentLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "IntentLambdaVersionhLLshyDfT7UTjL7qJMBhEUoPf78RaJO4tZY8Q3M0wg"
+            },
+            "Export": {
+              "Name": "sls-boe-backend-dev-IntentLambdaFunctionQualifiedArn"
+            }
+          },
+          "SimilarDashcommandLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "SimilarDashcommandLambdaVersionBt2gYkEhgnPPVGv3BW71u5mJGFDoRNIlSOoWKZx78T0"
+            },
+            "Export": {
+              "Name": "sls-boe-backend-dev-SimilarDashcommandLambdaFunctionQualifiedArn"
+            }
+          },
+          "HttpApiId": {
+            "Description": "Id of the HTTP API",
+            "Value": {
+              "Ref": "HttpApi"
+            },
+            "Export": {
+              "Name": "sls-boe-backend-dev-HttpApiId"
+            }
+          },
+          "HttpApiUrl": {
+            "Description": "URL of the HTTP API",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  "https://",
+                  {
+                    "Ref": "HttpApi"
+                  },
+                  ".execute-api.",
+                  {
+                    "Ref": "AWS::Region"
+                  },
+                  ".",
+                  {
+                    "Ref": "AWS::URLSuffix"
+                  }
+                ]
+              ]
+            },
+            "Export": {
+              "Name": "sls-boe-backend-dev-HttpApiUrl"
+            }
+          }
+        }
+      },
+      "vpc": {}
+    },
+    "plugins": [
+      "serverless-offline"
+    ],
+    "pluginsData": {},
+    "functions": {
+      "hello": {
+        "handler": "handler.hello",
+        "events": [
+          {
+            "httpApi": {
+              "path": "/hello",
+              "method": "GET"
+            },
+            "resolvedMethod": "GET",
+            "resolvedPath": "/hello"
+          }
+        ],
+        "name": "boe-backend-dev-hello",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs18.x",
+        "vpc": {},
+        "versionLogicalId": "HelloLambdaVersionW7iVnM8cLu45OLvRFZ7MsaqtofoKghZjYWR68p353E"
+      },
+      "intent": {
+        "handler": "handler.intent",
+        "events": [
+          {
+            "httpApi": {
+              "path": "/intent",
+              "method": "POST"
+            },
+            "resolvedMethod": "POST",
+            "resolvedPath": "/intent"
+          }
+        ],
+        "name": "boe-backend-dev-intent",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs18.x",
+        "vpc": {},
+        "versionLogicalId": "IntentLambdaVersionhLLshyDfT7UTjL7qJMBhEUoPf78RaJO4tZY8Q3M0wg"
+      },
+      "similar-command": {
+        "handler": "handler.similarCommand",
+        "events": [
+          {
+            "httpApi": {
+              "path": "/prod",
+              "method": "POST"
+            },
+            "resolvedMethod": "POST",
+            "resolvedPath": "/prod"
+          }
+        ],
+        "name": "boe-backend-dev-similar-command",
+        "package": {},
+        "memory": 1024,
+        "timeout": 6,
+        "runtime": "nodejs18.x",
+        "vpc": {},
+        "versionLogicalId": "SimilarDashcommandLambdaVersionBt2gYkEhgnPPVGv3BW71u5mJGFDoRNIlSOoWKZx78T0"
+      }
+    },
+    "configValidationMode": "warn",
+    "serviceFilename": "serverless",
+    "initialServerlessConfig": {
+      "service": "boe-backend",
+      "frameworkVersion": "4",
+      "provider": {
+        "$ref": "$[\"service\"][\"provider\"]"
+      },
+      "functions": {
+        "$ref": "$[\"service\"][\"functions\"]"
+      },
+      "package": {
+        "individually": false,
+        "include": [
+          "handler.js",
+          "index.js",
+          "similar-command.js",
+          "initPinecone.js",
+          "pinecone-init.js",
+          "upload-commands.js",
+          "commands.json",
+          "package.json",
+          "package-lock.json",
+          "node_modules/**"
+        ],
+        "artifactsS3KeyDirname": "serverless/boe-backend/dev/code-artifacts",
+        "deploymentBucket": "serverless-framework-deployments-us-east-1-4b35793f-c7b5",
+        "artifact": "/Users/errincalhoun/boe/backend/.serverless/boe-backend.zip",
+        "artifactDirectoryName": "serverless/boe-backend/dev/1752272840322-2025-07-11T22:27:20.322Z"
+      },
+      "plugins": {
+        "$ref": "$[\"service\"][\"plugins\"]"
+      }
+    },
+    "appId": null,
+    "orgId": null,
+    "layers": {},
+    "artifact": "/Users/errincalhoun/boe/backend/.serverless/boe-backend.zip"
+  },
+  "package": {
+    "individually": false,
+    "artifactDirectoryName": "serverless/boe-backend/dev/1752272840322-2025-07-11T22:27:20.322Z",
+    "artifact": "boe-backend.zip"
+  }
+}

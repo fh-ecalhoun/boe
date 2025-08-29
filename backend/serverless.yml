@@ -1,0 +1,66 @@
+service: boe-backend
+frameworkVersion: '4'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  stage: dev
+  environment:
+    OPENAI_API_KEY: ${env:OPENAI_API_KEY}
+    PINECONE_API_KEY: ${env:PINECONE_API_KEY}
+    PINECONE_ENVIRONMENT: ${env:PINECONE_ENVIRONMENT}
+    PINECONE_PROJECT_NAME: ${env:PINECONE_PROJECT_NAME}
+    PINECONE_INDEX: ${env:PINECONE_INDEX}
+  httpApi:
+    cors:
+      allowedOrigins:
+        - http://localhost:3000
+      allowedMethods:
+        - GET
+        - POST
+        - OPTIONS
+      allowedHeaders:
+        - Content-Type
+        - Authorization
+      allowCredentials: false
+
+functions:
+  hello:
+    handler: handler.hello
+    events:
+      - httpApi:
+          path: /hello
+          method: GET
+
+  intent:
+    handler: handler.intent
+    events:
+      - httpApi:
+          path: /intent
+          method: POST
+
+  similar-command:
+    handler: handler.similarCommand
+    events:
+      - httpApi:
+          path: /prod
+          method: POST
+
+package:
+  individually: false
+  include:
+    - handler.js
+    - index.js
+    - similar-command.js
+    - initPinecone.js
+    - pinecone-init.js
+    - upload-commands.js
+    - commands.json
+    - package.json
+    - package-lock.json
+    - node_modules/**
+
+plugins:
+  - serverless-offline
+
